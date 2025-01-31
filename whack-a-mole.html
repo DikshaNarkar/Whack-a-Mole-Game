@@ -1,0 +1,211 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<title>Whack-a-Mole Game</title> 
+<style> 
+body { 
+display: flex; 
+flex-direction: column; 
+align-items: center; 
+font-family: 'Arial', sans-serif; 
+background-color: #e8f5e9; 
+position: relative; 
+height: 100vh; 
+overflow: hidden; /* Prevent scrolling */ 
+text-align: center; 
+} 
+h1 { 
+color: #388e3c; 
+margin: 20px 0; 
+} 
+h2 { 
+color: #333; 
+margin: 10px 0; 
+} 
+#timer { 
+font-size: 24px; 
+color: red; 
+} 
+button { 
+padding: 10px 20px; 
+font-size: 16px; 
+cursor: pointer; 
+background-color: #388e3c; 
+color: white; 
+border: none; 
+border-radius: 5px; 
+transition: background-color 0.3s; 
+} 
+button:hover { 
+background-color: #2e7d32; 
+} 
+#boxes-container { 
+display: flex; 
+justify-content: center; 
+margin-top: 20px; 
+} 
+.box { 
+width: 100px; 
+height: 100px; 
+border: 2px solid #333; 
+border-radius: 10px; 
+display: inline-block; 
+margin: 10px; 
+position: relative; 
+background-color: #fff; /* White background for boxes */ 
+box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); 
+} 
+.mole { 
+width: 80px; 
+height: 80px; 
+background-color: brown; 
+border-radius: 50%; 
+position: absolute; /* Position relative to the box */ 
+bottom: 0; /* Start from the bottom of the box */ 
+left: 50%; 
+transform: translateX(-50%); 
+display: none; 
+box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5); 
+} 
+.mole.active { 
+display: block; 
+animation: pop-up 0.5s ease-in-out; 
+} 
+@keyframes pop-up { 
+from { 
+transform: translate(-50%, 100%); 
+} 
+to { 
+transform: translate(-50%, 0); 
+} 
+} 
+/* Styles for the pop-up message */ 
+.popup-message { 
+position: absolute; 
+top: 220px; /* Adjusted position below boxes */ 
+left: 50%; 
+transform: translateX(-50%); 
+padding: 20px; 
+background-color: #ffffff; 
+border: 2px solid #388e3c; 
+border-radius: 10px; 
+box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); 
+display: none; /* Hidden by default */ 
+font-size: 24px; /* Larger font for the message */ 
+} 
+.flower { 
+position: absolute; 
+font-size: 24px; 
+animation: fall 3s linear forwards; 
+} 
+@keyframes fall { 
+to { 
+transform: translateY(100vh); 
+opacity: 0; 
+} 
+} 
+</style> 
+</head> 
+<body> 
+<h1>Whack-a-Mole Game!</h1> 
+<h2>Score: <span id="score">0</span></h2> 
+<h2 id="timer">Time Left: 30</h2> 
+<button id="start-btn">Start Game</button> 
+<div id="boxes-container"> 
+<div class="box"><div class="mole"></div></div> 
+<div class="box"><div class="mole"></div></div> 
+<div class="box"><div class="mole"></div></div> 
+<div class="box"><div class="mole"></div></div> 
+<div class="box"><div class="mole"></div></div> 
+<div class="box"><div class="mole"></div></div> 
+</div> 
+<div class="popup-message" id="popup-message">Well Played! 🎉</div> 
+<script> 
+let score = 0; 
+let timeLeft = 30; 
+let gameInterval; 
+const scoreDisplay = document.getElementById('score'); 
+const timerDisplay = document.getElementById('timer'); 
+const startButton = document.getElementById('start-btn'); 
+const moles = document.querySelectorAll('.mole'); // Select all mole elements 
+const popupMessage = document.getElementById('popup-message'); 
+// Whack the mole and increase score 
+moles.forEach(mole => { 
+mole.addEventListener('click', () => { 
+if (mole.classList.contains('active')) { 
+score++; 
+scoreDisplay.textContent = score; 
+mole.classList.remove('active'); 
+// Show popup message every 5 points 
+if (score % 5 === 0) { 
+showPopupMessage(); 
+} 
+} 
+}); 
+}); 
+// Function to show a mole at a random box 
+function showMole() { 
+const randomIndex = Math.floor(Math.random() * moles.length); 
+const mole = moles[randomIndex]; 
+mole.classList.add('active'); 
+setTimeout(() => { 
+mole.classList.remove('active'); 
+}, 1000); // Mole stays visible for 1 second 
+} 
+// Start the game 
+startButton.addEventListener('click', () => { 
+score = 0; 
+timeLeft = 30; 
+scoreDisplay.textContent = score; 
+timerDisplay.textContent = `Time Left: ${timeLeft}`; 
+clearInterval(gameInterval); 
+gameInterval = setInterval(showMole, 1000); // Show a mole every second 
+startTimer(); 
+}); 
+// Start the countdown timer 
+function startTimer() { 
+const timer = setInterval(() => { 
+timeLeft--; 
+timerDisplay.textContent = `Time Left: ${timeLeft}`; 
+if (timeLeft <= 0) { 
+clearInterval(timer); 
+clearInterval(gameInterval); 
+showFinalScore(); 
+} 
+}, 1000); 
+} 
+// Show a popup message 
+function showPopupMessage() { 
+popupMessage.style.display = 'block'; 
+setTimeout(() => { 
+popupMessage.style.display = 'none'; 
+}, 2000); // Message stays for 2 seconds 
+} 
+// Show final score and spread flowers 
+function showFinalScore() { 
+alert(`Game over! Your score is: ${score}`); 
+spreadFlowers(); 
+} 
+// Function to spread flowers over the screen 
+function spreadFlowers() { 
+const flowerCount = 20; // Number of flowers to spread 
+for (let i = 0; i < flowerCount; i++) { 
+const flower = document.createElement('div'); 
+flower.classList.add('flower'); 
+flower.textContent = '🌸'; // Flower emoji 
+flower.style.left = `${Math.random() * 100}vw`; // Random horizontal position 
+flower.style.top = `${Math.random() * 100}vh`; // Random vertical position 
+document.body.appendChild(flower); 
+// Remove flower after animation 
+flower.addEventListener('animationend', () => { 
+flower.remove(); 
+}); 
+} 
+// Simulate applause (this is a placeholder, you can add a sound effect here) 
+alert("👏👏👏 Well done! 👏👏👏"); 
+} 
+</script> 
+</body> 
+</html>
